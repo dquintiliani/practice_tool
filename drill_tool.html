@@ -1,0 +1,122 @@
+<h2 class="sr-only">Multi-step CVP calculation drill for credit card products, with scenario context, a distractor variable, and a scratchpad, keyboard operable</h2>
+<div style="max-width:560px;margin:0 auto;">
+  <div id="problem" style="font-size:16px;line-height:1.7;margin-bottom:1rem;min-height:100px;"></div>
+  <textarea id="scratch" placeholder="Scratchpad — work it out here" style="width:100%;min-height:80px;font-family:var(--font-mono);font-size:13px;padding:8px;margin-bottom:0.75rem;resize:vertical;background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text-primary);"></textarea>
+  <div style="display:flex;gap:8px;margin-bottom:0.75rem;">
+    <input type="number" id="answer" placeholder="Final answer, then Enter" style="flex:1;" />
+    <button id="check">Check <span style="color:var(--text-muted);font-size:12px;">(Enter)</span></button>
+  </div>
+  <div id="feedback" style="font-size:14px;min-height:24px;margin-bottom:0.75rem;"></div>
+  <button id="next" style="width:100%;">New problem <span style="color:var(--text-muted);font-size:12px;">(N)</span></button>
+</div>
+<script>
+function r(min,max,step){ step=step||1; const n=Math.floor(Math.random()*((max-min)/step+1)); return min+n*step; }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+const cards = ['a travel rewards card', 'a cashback card', 'a small business card', 'a student card', 'a premium metal card', 'a co-branded retail card'];
+const distractorLines = [
+  n => `The team spent $${n} on a marketing campaign this quarter.`,
+  n => `Fraud losses came in at $${n} for the period.`,
+  n => `${n} applications were rejected during underwriting.`,
+  n => `Customer complaints cost the team $${n} in goodwill credits.`,
+  n => `The rewards program budget was adjusted by $${n} this year.`
+];
+function distractor(){ return pick(distractorLines)(r(500,8000,100)); }
+
+const templates = [
+  // annual fee revenue - servicing cost per cardholder -> CM per cardholder -> breakeven cardholders
+  () => {
+    const card = pick(cards);
+    const fee = r(50,450,25), cost = r(15,fee-15,5), holders = r(1000,20000,500);
+    const fixed = (fee-cost)*holders;
+    return { text: `${card} charges a $${fee} annual fee and costs $${cost} per cardholder to service each year. The program has $${fixed.toLocaleString()} in fixed costs. ${distractor()} How many cardholders are needed to break even?`, answer: holders };
+  },
+  // CM ratio -> breakeven revenue
+  () => {
+    const card = pick(cards);
+    const fee = r(75,500,25), cost = r(20,fee-20,5);
+    const cmRatio = Math.round(((fee-cost)/fee)*100)/100;
+    const fixed = r(50000,400000,5000);
+    const breakevenRev = Math.round(fixed/cmRatio);
+    return { text: `${card} generates $${fee} in fee revenue per cardholder at a $${cost} servicing cost. Fixed program costs run $${fixed.toLocaleString()}. ${distractor()} What is breakeven revenue in dollars, rounded to the nearest dollar?`, answer: breakevenRev };
+  },
+  // profit from holders, fee, cost, fixed
+  () => {
+    const card = pick(cards);
+    const holders = r(2000,30000,500), fee = r(50,400,10), cost = r(15,fee-15,5), fixed = r(20000,250000,5000);
+    const profit = holders*fee - holders*cost - fixed;
+    return { text: `${card} has ${holders.toLocaleString()} cardholders, each generating $${fee} in annual fee revenue at a $${cost} servicing cost. Fixed costs are $${fixed.toLocaleString()}. ${distractor()} What is the program's profit?`, answer: profit };
+  },
+  // target profit -> cardholders needed
+  () => {
+    const card = pick(cards);
+    const cm = r(20,150,5), fixed = r(30000,300000,5000), target = r(10000,150000,5000);
+    return { text: `${card} program wants $${target.toLocaleString()} in profit this year. Fixed costs are $${fixed.toLocaleString()}, and CM per cardholder is $${cm}. ${distractor()} How many cardholders are needed to hit that target?`, answer: Math.round((fixed+target)/cm) };
+  },
+  // total costs & fixed -> servicing cost per cardholder
+  () => {
+    const card = pick(cards);
+    const holders = r(2000,25000,500), cost = r(10,80,2), fixed = r(20000,200000,5000);
+    const totalCosts = holders*cost + fixed;
+    return { text: `${card} program had total costs of $${totalCosts.toLocaleString()} while serving ${holders.toLocaleString()} cardholders, with $${fixed.toLocaleString()} of that being fixed. ${distractor()} What is the servicing cost per cardholder?`, answer: cost };
+  },
+  // reverse: breakeven holders + CM -> fixed costs
+  () => {
+    const card = pick(cards);
+    const cm = r(20,150,5), holders = r(1000,20000,500);
+    const fixed = cm*holders;
+    return { text: `${card} program breaks even at ${holders.toLocaleString()} cardholders with a CM per cardholder of $${cm}. ${distractor()} What are the program's fixed costs?`, answer: fixed };
+  },
+  // full chain: fee, cost, holders, fixed -> profit
+  () => {
+    const card = pick(cards);
+    const fee = r(60,400,10), cost = r(15,fee-15,5), holders = r(1500,20000,500), fixed = r(20000,200000,5000);
+    const cm = fee - cost;
+    const profit = cm*holders - fixed;
+    return { text: `${card} charges $${fee} per cardholder annually with a $${cost} servicing cost, has ${holders.toLocaleString()} cardholders, and $${fixed.toLocaleString()} in fixed costs. ${distractor()} What is profit?`, answer: profit };
+  }
+];
+
+let current = null;
+const answerEl = document.getElementById('answer');
+const feedbackEl = document.getElementById('feedback');
+const scratchEl = document.getElementById('scratch');
+
+function newProblem(){
+  const t = templates[Math.floor(Math.random()*templates.length)]();
+  current = t;
+  document.getElementById('problem').textContent = t.text;
+  answerEl.value = '';
+  scratchEl.value = '';
+  feedbackEl.textContent = '';
+  answerEl.focus();
+}
+
+function checkAnswer(){
+  const val = parseFloat(answerEl.value);
+  if (isNaN(val)) { feedbackEl.textContent = 'Enter a number.'; feedbackEl.style.color = 'var(--text-secondary)'; return; }
+  if (val === current.answer) {
+    feedbackEl.textContent = 'Correct. Press N for the next one.';
+    feedbackEl.style.color = 'var(--text-success)';
+  } else {
+    feedbackEl.textContent = `Not quite. Answer: ${current.answer.toLocaleString()} — press N to continue.`;
+    feedbackEl.style.color = 'var(--text-danger)';
+  }
+}
+
+document.getElementById('check').onclick = checkAnswer;
+document.getElementById('next').onclick = newProblem;
+
+answerEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkAnswer();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key.toLowerCase() === 'n' && document.activeElement !== answerEl && document.activeElement !== scratchEl) {
+    e.preventDefault();
+    newProblem();
+  }
+});
+
+newProblem();
+</script>
