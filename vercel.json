@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "echo 'Local-only app for now — skipping Vercel deployment.' && exit 0"
+}

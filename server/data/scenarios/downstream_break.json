@@ -1,0 +1,44 @@
+{
+  "scenario_id": "downstream_break",
+  "title": "The Downstream Break",
+  "premise": "[Placeholder content] A data product change you shipped last week just broke a downstream consumer's dashboard in production. The consumer team is asking what happened.",
+  "persona": {
+    "name": "TBD",
+    "role": "Downstream consumer team lead",
+    "tone": "Frustrated, wants answers and a fix, not excuses"
+  },
+  "rubric_dimensions": [
+    "recovered_from_new_info",
+    "named_tradeoff_explicitly"
+  ],
+  "rubric_reference": {
+    "recovered_from_new_info": "A strong PM owns an incident immediately, communicates clearly and quickly, and doesn't wait for the consumer to escalate further.",
+    "named_tradeoff_explicitly": "A strong PM is upfront about the rollback vs. forward-fix tradeoff and its timeline impact rather than promising an unrealistic fix time."
+  },
+  "pass_threshold": { "count": 1 },
+  "nodes": {
+    "start": {
+      "situation_text": "[Placeholder] The consumer team's dashboard is showing broken data since your change shipped. This is stub content — full branching to be authored.",
+      "options": [
+        {
+          "option_text": "[Placeholder] Immediately acknowledge the incident, own it publicly, and give a clear next-update time.",
+          "reaction_text": "[Placeholder reaction — content pending.]",
+          "next_node": null,
+          "rubric_signal": { "recovered_from_new_info": true }
+        },
+        {
+          "option_text": "[Placeholder] Investigate quietly first and say nothing until you have a full root cause.",
+          "reaction_text": "[Placeholder reaction — content pending.]",
+          "next_node": null,
+          "rubric_signal": { "recovered_from_new_info": false }
+        },
+        {
+          "option_text": "[Placeholder] Explain the rollback-vs-forward-fix tradeoff and the realistic timeline instead of promising an immediate fix.",
+          "reaction_text": "[Placeholder reaction — content pending.]",
+          "next_node": null,
+          "rubric_signal": { "named_tradeoff_explicitly": true }
+        }
+      ]
+    }
+  }
+}

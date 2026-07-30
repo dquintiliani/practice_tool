@@ -1,0 +1,44 @@
+{
+  "scenario_id": "roadmap_tug_of_war",
+  "title": "The Roadmap Tug-of-War",
+  "premise": "[Placeholder content] Two VPs — Engineering and Sales — each believe their initiative is next quarter's top priority, and both are lobbying you directly to commit the roadmap slot.",
+  "persona": {
+    "name": "TBD",
+    "role": "Two conflicting VP stakeholders",
+    "tone": "Both confident, both unwilling to yield"
+  },
+  "rubric_dimensions": [
+    "named_tradeoff_explicitly",
+    "asked_clarifying_questions"
+  ],
+  "rubric_reference": {
+    "named_tradeoff_explicitly": "A strong PM names the resourcing tradeoff explicitly to both stakeholders and forces a shared prioritization conversation instead of deciding unilaterally or avoiding the conflict.",
+    "asked_clarifying_questions": "A strong PM asks what success looks like for each initiative and what the real cost of delay is before picking a side."
+  },
+  "pass_threshold": { "count": 1 },
+  "nodes": {
+    "start": {
+      "situation_text": "[Placeholder] Both VPs want your answer by end of day on which initiative gets the roadmap slot. This is stub content — full branching to be authored.",
+      "options": [
+        {
+          "option_text": "[Placeholder] Ask both VPs to articulate the cost of delay before committing.",
+          "reaction_text": "[Placeholder reaction — content pending.]",
+          "next_node": null,
+          "rubric_signal": { "asked_clarifying_questions": true }
+        },
+        {
+          "option_text": "[Placeholder] Pick the louder VP's initiative to end the conflict quickly.",
+          "reaction_text": "[Placeholder reaction — content pending.]",
+          "next_node": null,
+          "rubric_signal": { "asked_clarifying_questions": false, "named_tradeoff_explicitly": false }
+        },
+        {
+          "option_text": "[Placeholder] Bring both VPs together and name the tradeoff explicitly so they decide together.",
+          "reaction_text": "[Placeholder reaction — content pending.]",
+          "next_node": null,
+          "rubric_signal": { "named_tradeoff_explicitly": true }
+        }
+      ]
+    }
+  }
+}

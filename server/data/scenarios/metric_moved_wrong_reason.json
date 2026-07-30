@@ -1,0 +1,44 @@
+{
+  "scenario_id": "metric_moved_wrong_reason",
+  "title": "The Metric That Moved for the Wrong Reason",
+  "premise": "[Placeholder content] Your OKR dashboard shows a key metric improved 15% this month. Leadership is ready to celebrate, but a closer look suggests the improvement may be a confound rather than real impact.",
+  "persona": {
+    "name": "TBD",
+    "role": "Director asking for a readout",
+    "tone": "Eager to celebrate a win, not deeply technical"
+  },
+  "rubric_dimensions": [
+    "recovered_from_new_info",
+    "asked_clarifying_questions"
+  ],
+  "rubric_reference": {
+    "recovered_from_new_info": "A strong PM investigates a suspicious metric move before presenting it as a win, and corrects course publicly once a confound is found.",
+    "asked_clarifying_questions": "A strong PM asks what else changed in the period before attributing a metric move to their own initiative."
+  },
+  "pass_threshold": { "count": 1 },
+  "nodes": {
+    "start": {
+      "situation_text": "[Placeholder] The dashboard shows the metric up 15% month-over-month. This is stub content — full branching to be authored.",
+      "options": [
+        {
+          "option_text": "[Placeholder] Present the win as-is to leadership without further investigation.",
+          "reaction_text": "[Placeholder reaction — content pending.]",
+          "next_node": null,
+          "rubric_signal": { "asked_clarifying_questions": false, "recovered_from_new_info": false }
+        },
+        {
+          "option_text": "[Placeholder] Dig into the segments behind the metric before presenting anything.",
+          "reaction_text": "[Placeholder reaction — content pending.]",
+          "next_node": null,
+          "rubric_signal": { "asked_clarifying_questions": true }
+        },
+        {
+          "option_text": "[Placeholder] After finding a confound, correct the narrative with leadership rather than letting the win stand.",
+          "reaction_text": "[Placeholder reaction — content pending.]",
+          "next_node": null,
+          "rubric_signal": { "recovered_from_new_info": true }
+        }
+      ]
+    }
+  }
+}
