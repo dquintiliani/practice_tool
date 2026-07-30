@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#14161a" media="(prefers-color-scheme: dark)" />
 <title>CVP Practice Drill</title>
 <style>
   :root {
@@ -32,13 +37,17 @@
       --accent: #58a6ff;
     }
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
-    padding: 2.5rem 1rem;
+    padding: clamp(1.25rem, 6vh, 2.5rem) 1rem calc(1.25rem + env(safe-area-inset-bottom));
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
     background: var(--surface-0);
     color: var(--text-primary);
     font-family: var(--font-sans);
+    min-height: 100dvh;
   }
   .sr-only {
     position: absolute;
@@ -62,19 +71,36 @@
     border: 0.5px solid var(--border);
     border-radius: var(--radius);
     padding: 10px 14px;
+    min-height: 44px;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    user-select: none;
   }
   button:hover {
     filter: brightness(0.97);
   }
+  button:active {
+    filter: brightness(0.93);
+    transform: translateY(0.5px);
+  }
   @media (prefers-color-scheme: dark) {
     button:hover { filter: brightness(1.15); }
+    button:active { filter: brightness(1.25); }
   }
   input[type="number"] {
     background: var(--surface-1);
     border: 0.5px solid var(--border);
     border-radius: var(--radius);
     padding: 10px 12px;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+  textarea {
+    touch-action: manipulation;
+  }
+  @media (hover: none) and (pointer: coarse) {
+    .kbd-hint { display: none; }
   }
 </style>
 </head>
@@ -86,11 +112,11 @@
   <textarea id="scratch" placeholder="Scratchpad — work it out here" style="width:100%;min-height:80px;font-family:var(--font-mono);font-size:13px;padding:8px;margin-bottom:0.75rem;resize:vertical;background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text-primary);"></textarea>
   <div style="display:flex;gap:8px;margin-bottom:0.75rem;">
     <label for="answer" class="sr-only">Final answer</label>
-    <input type="number" id="answer" placeholder="Final answer, then Enter" style="flex:1;" />
-    <button id="check" type="button">Check <span style="color:var(--text-muted);font-size:12px;">(Enter)</span></button>
+    <input type="number" inputmode="decimal" id="answer" placeholder="Final answer, then Enter" style="flex:1;" />
+    <button id="check" type="button">Check <span class="kbd-hint" style="color:var(--text-muted);font-size:12px;">(Enter)</span></button>
   </div>
   <div id="feedback" role="status" style="font-size:14px;min-height:24px;margin-bottom:0.75rem;"></div>
-  <button id="next" type="button" style="width:100%;">New problem <span style="color:var(--text-muted);font-size:12px;">(N)</span></button>
+  <button id="next" type="button" style="width:100%;">New problem <span class="kbd-hint" style="color:var(--text-muted);font-size:12px;">(N)</span></button>
 </div>
 <script>
 function r(min,max,step){ step=step||1; const n=Math.floor(Math.random()*((max-min)/step+1)); return min+n*step; }
