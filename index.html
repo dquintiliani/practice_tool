@@ -102,11 +102,73 @@
   @media (hover: none) and (pointer: coarse) {
     .kbd-hint { display: none; }
   }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    flex: none;
+  }
+  .switch input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+  }
+  .switch .track {
+    position: absolute;
+    inset: 0;
+    background: var(--surface-1);
+    border: 0.5px solid var(--border);
+    border-radius: 999px;
+    transition: background-color .15s, border-color .15s;
+    pointer-events: none;
+  }
+  .switch .track::before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    top: 2px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: transform .15s, background-color .15s;
+  }
+  .switch input:checked + .track {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .switch input:checked + .track::before {
+    transform: translateX(18px);
+    background: #fff;
+  }
+  .switch input:focus-visible + .track {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .difficulty-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
 </style>
 </head>
 <body>
-<h1 class="sr-only">Multi-step CVP calculation drill for credit card products, with scenario context, a distractor variable, and a scratchpad, keyboard operable</h1>
+<h1 class="sr-only">Multi-step CVP calculation drill for credit card products, with scenario context, a distractor variable, a difficulty toggle for risk-adjusted contribution margin problems, and a scratchpad, keyboard operable</h1>
 <div style="max-width:560px;margin:0 auto;">
+  <div class="difficulty-row">
+    <label class="switch">
+      <input type="checkbox" id="difficulty" aria-label="Higher difficulty: risk-adjusted contribution margin problems with tiered interchange costs and chargeback rates" />
+      <span class="track" aria-hidden="true"></span>
+    </label>
+    <label for="difficulty" style="cursor:pointer;">Higher difficulty — risk-adjusted CM (tiered interchange + chargeback rate)</label>
+  </div>
   <div id="problem" style="font-size:16px;line-height:1.7;margin-bottom:1rem;min-height:100px;"></div>
   <label for="scratch" class="sr-only">Scratchpad</label>
   <textarea id="scratch" placeholder="Scratchpad — work it out here" style="width:100%;min-height:80px;font-family:var(--font-mono);font-size:13px;padding:8px;margin-bottom:0.75rem;resize:vertical;background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text-primary);"></textarea>
@@ -132,7 +194,7 @@ const distractorLines = [
 ];
 function distractor(){ return pick(distractorLines)(r(500,8000,100)); }
 
-const templates = [
+const standardTemplates = [
   // annual fee revenue - servicing cost per cardholder -> CM per cardholder -> breakeven cardholders
   () => {
     const card = pick(cards);
@@ -186,13 +248,101 @@ const templates = [
   }
 ];
 
+// --- Higher-difficulty pool: risk-adjusted contribution margin ---
+// Factors in tiered (bracketed) interchange costs plus an expected loss/chargeback
+// rate on volume, so "true" CM has to account for risk alongside scale.
+
+function makeTiers(){
+  const t1 = r(50000,150000,5000);
+  const t2 = t1 + r(100000,250000,5000);
+  const rate1 = r(120,190,5);
+  const rate2 = Math.max(50, rate1 - r(15,35,5));
+  const rate3 = Math.max(30, rate2 - r(15,35,5));
+  return { t1, t2, rate1, rate2, rate3 };
+}
+
+function tieredInterchangeCost(volume, tiers){
+  const band1 = Math.min(volume, tiers.t1);
+  const band2 = Math.max(0, Math.min(volume, tiers.t2) - tiers.t1);
+  const band3 = Math.max(0, volume - tiers.t2);
+  return band1*tiers.rate1/10000 + band2*tiers.rate2/10000 + band3*tiers.rate3/10000;
+}
+
+function tiersText(tiers){
+  return `${(tiers.rate1/100).toFixed(2)}% on the first $${tiers.t1.toLocaleString()} of monthly volume, `
+    + `${(tiers.rate2/100).toFixed(2)}% on the next $${(tiers.t2-tiers.t1).toLocaleString()}, `
+    + `and ${(tiers.rate3/100).toFixed(2)}% on volume beyond $${tiers.t2.toLocaleString()}`;
+}
+
+function trueCM(volume, revBps, tiers, lossBps, fixed){
+  const revenue = volume*revBps/10000;
+  const interchangeCost = tieredInterchangeCost(volume, tiers);
+  const loss = volume*lossBps/10000;
+  return revenue - interchangeCost - loss - fixed;
+}
+
+const advancedTemplates = [
+  // total true CM in dollars: revenue - tiered interchange - expected loss - fixed
+  () => {
+    const card = pick(cards);
+    const tiers = makeTiers();
+    const volume = r(tiers.t1, tiers.t2*3, 5000);
+    const revBps = r(220,340,5);
+    const lossBps = r(10,45,5);
+    const preFixedCM = trueCM(volume, revBps, tiers, lossBps, 0);
+    // scale fixed costs off this scenario's own margin so the true CM lands
+    // on either side of breakeven, instead of always being deeply negative
+    const fixed = preFixedCM > 0 ? Math.round(preFixedCM*r(30,170,5)/100/500)*500 : 0;
+    const answer = Math.round(preFixedCM - fixed);
+    return { text: `${card} program processes $${volume.toLocaleString()} in transaction volume this month. It earns ${(revBps/100).toFixed(2)}% in processing revenue on total volume. Interchange is tiered: ${tiersText(tiers)}. The expected loss rate from chargebacks and fraud is ${(lossBps/100).toFixed(2)}% of volume. Fixed operating costs are $${fixed.toLocaleString()}. ${distractor()} What is the program's true (risk-adjusted) contribution margin in dollars this month, rounded to the nearest dollar?`, answer };
+  },
+  // true CM per transaction as volume scales, tiered interchange + loss rate, excludes fixed (CM is per-unit)
+  () => {
+    const card = pick(cards);
+    const tiers = makeTiers();
+    const avgTxn = pick([25,50,75,100,150,200,250]);
+    const txnCount = r(2000,20000,500);
+    const volume = txnCount*avgTxn;
+    const revBps = r(220,340,5);
+    const lossBps = r(10,45,5);
+    const answer = Math.round((trueCM(volume, revBps, tiers, lossBps, 0)/txnCount)*100)/100;
+    return { text: `${card} processes ${txnCount.toLocaleString()} transactions this month averaging $${avgTxn} each (total volume $${volume.toLocaleString()}). It earns ${(revBps/100).toFixed(2)}% in processing revenue on volume. Interchange is tiered: ${tiersText(tiers)}. Expected losses from chargebacks and fraud run ${(lossBps/100).toFixed(2)}% of volume. ${distractor()} What is the true (risk-adjusted) contribution margin per transaction, rounded to the nearest cent?`, answer };
+  },
+  // incremental true CM as volume scales across a tier boundary
+  () => {
+    const card = pick(cards);
+    const tiers = makeTiers();
+    const revBps = r(220,340,5);
+    const lossBps = r(10,45,5);
+    const v1 = r(Math.max(5000, tiers.t1-80000), tiers.t1, 5000);
+    const growth = r(50000,200000,5000);
+    const v2 = v1 + growth;
+    const cm1 = trueCM(v1, revBps, tiers, lossBps, 0);
+    const cm2 = trueCM(v2, revBps, tiers, lossBps, 0);
+    const answer = Math.round(cm2-cm1);
+    return { text: `${card} program is scaling up. This month it processed $${v1.toLocaleString()} in volume; next month it's projected to reach $${v2.toLocaleString()}. It earns ${(revBps/100).toFixed(2)}% in processing revenue on volume. Interchange is tiered: ${tiersText(tiers)}. Expected losses from chargebacks and fraud run ${(lossBps/100).toFixed(2)}% of volume, applied consistently as volume grows. ${distractor()} How much additional true (risk-adjusted) contribution margin, in dollars, does the volume growth generate, rounded to the nearest dollar?`, answer };
+  }
+];
+
 let current = null;
 const answerEl = document.getElementById('answer');
 const feedbackEl = document.getElementById('feedback');
 const scratchEl = document.getElementById('scratch');
+const difficultyEl = document.getElementById('difficulty');
+
+difficultyEl.checked = localStorage.getItem('cvpHigherDifficulty') === '1';
+difficultyEl.addEventListener('change', () => {
+  localStorage.setItem('cvpHigherDifficulty', difficultyEl.checked ? '1' : '0');
+  newProblem();
+});
+
+function fmtAnswer(n){
+  return Number.isInteger(n) ? n.toLocaleString() : n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 function newProblem(){
-  const t = templates[Math.floor(Math.random()*templates.length)]();
+  const pool = difficultyEl.checked ? advancedTemplates : standardTemplates;
+  const t = pool[Math.floor(Math.random()*pool.length)]();
   current = t;
   document.getElementById('problem').textContent = t.text;
   answerEl.value = '';
@@ -204,11 +354,11 @@ function newProblem(){
 function checkAnswer(){
   const val = parseFloat(answerEl.value);
   if (isNaN(val)) { feedbackEl.textContent = 'Enter a number.'; feedbackEl.style.color = 'var(--text-secondary)'; return; }
-  if (val === current.answer) {
+  if (Math.abs(val - current.answer) < 0.005) {
     feedbackEl.textContent = 'Correct. Press N for the next one.';
     feedbackEl.style.color = 'var(--text-success)';
   } else {
-    feedbackEl.textContent = `Not quite. Answer: ${current.answer.toLocaleString()} — press N to continue.`;
+    feedbackEl.textContent = `Not quite. Answer: ${fmtAnswer(current.answer)} — press N to continue.`;
     feedbackEl.style.color = 'var(--text-danger)';
   }
 }
