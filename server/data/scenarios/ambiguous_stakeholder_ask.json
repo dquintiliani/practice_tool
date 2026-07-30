@@ -1,0 +1,169 @@
+{
+  "scenario_id": "ambiguous_stakeholder_ask",
+  "title": "The Ambiguous Ask",
+  "premise": "Priya Shah, VP of Marketing, pings you: \"Can you get me a dashboard of customer engagement by next week? Marketing needs to see how the campaigns are doing.\" She hasn't said which metrics, which campaigns, or who else needs access.",
+  "persona": {
+    "name": "Priya Shah",
+    "role": "VP of Marketing",
+    "tone": "Impatient, non-technical, means well but thinks in outcomes, not specs"
+  },
+  "rubric_dimensions": [
+    "asked_clarifying_questions",
+    "distinguished_reusable_vs_oneoff",
+    "named_tradeoff_explicitly",
+    "recovered_from_new_info"
+  ],
+  "rubric_reference": {
+    "asked_clarifying_questions": "A strong PM asks which campaigns, which metrics actually matter to the audience, who else consumes the output, and by when — before committing to scope.",
+    "distinguished_reusable_vs_oneoff": "A strong PM checks for existing reusable infrastructure (dashboards, pipelines, data models) before greenlighting a custom build, and weighs the maintenance cost of duplicating effort.",
+    "named_tradeoff_explicitly": "A strong PM surfaces conflicting asks and timeline/quality tradeoffs directly to stakeholders instead of silently absorbing the risk or unilaterally picking a side.",
+    "recovered_from_new_info": "A strong PM treats new information — a bug, a data quality issue, a missed requirement — as a trigger to pause and communicate, not something to hide, footnote, or route around."
+  },
+  "pass_threshold": { "count": 3 },
+  "nodes": {
+    "start": {
+      "situation_text": "Priya's message sits in your inbox: \"Can you get me a dashboard of customer engagement by next week? Marketing needs to see how the campaigns are doing.\" No metrics, no campaign names, no audience specified. She's already moved on to another Slack thread.",
+      "options": [
+        {
+          "option_text": "Reply asking which campaigns, which metrics matter to her, and who else will use the dashboard — before scoping anything.",
+          "reaction_text": "Priya replies within the hour, a little clipped: \"It's the two paid social pushes from this quarter. I want to see opens, clicks, and signups. Leadership will look at it too.\" You now have enough to scope.",
+          "next_node": "node_scope",
+          "rubric_signal": { "asked_clarifying_questions": true }
+        },
+        {
+          "option_text": "Start building a dashboard with standard engagement metrics (opens, clicks, conversions) right away to move fast.",
+          "reaction_text": "Three days later you show Priya the dashboard. She frowns: \"This is tracking the email campaigns — I meant the paid social pushes. And I need signups, not just clicks. This isn't what I needed at all.\"",
+          "next_node": "node_rework",
+          "rubric_signal": { "asked_clarifying_questions": false }
+        },
+        {
+          "option_text": "Tell Priya you'll need a full week of stakeholder discovery interviews before you can start any build.",
+          "reaction_text": "Priya pushes back fast: \"A week just to start? I don't have that kind of runway. Leadership meets Friday and I need something to show them.\"",
+          "next_node": "node_pushback",
+          "rubric_signal": { "asked_clarifying_questions": false }
+        },
+        {
+          "option_text": "Ask her one quick question — which campaigns — and fill in the rest of the scope yourself based on best guesses.",
+          "reaction_text": "Priya says: \"The two paid social pushes.\" You proceed assuming standard metrics and default access, without confirming who else needs to see it.",
+          "next_node": "node_scope",
+          "rubric_signal": { "asked_clarifying_questions": true }
+        }
+      ]
+    },
+    "node_rework": {
+      "situation_text": "Priya is frustrated: wrong campaigns, wrong metrics, three days burned. She says, \"This isn't what I needed at all,\" and is waiting on you to respond.",
+      "options": [
+        {
+          "option_text": "Acknowledge the miss, ask the clarifying questions you skipped the first time, and rescope before rebuilding.",
+          "reaction_text": "Priya softens: \"Okay — yeah, let's do that. It's the two paid social pushes, and I need opens, clicks, and signups.\" You're back on track with real scope.",
+          "next_node": "node_scope",
+          "rubric_signal": { "asked_clarifying_questions": true, "recovered_from_new_info": true }
+        },
+        {
+          "option_text": "Defend the build as a reasonable interpretation of the original ask.",
+          "reaction_text": "Priya isn't having it: \"I don't have time to debate this,\" and loops in your manager to ask why the first attempt missed the mark so badly.",
+          "next_node": null,
+          "rubric_signal": { "recovered_from_new_info": false }
+        },
+        {
+          "option_text": "Quietly patch the existing dashboard to point at the right campaigns without checking in with Priya about what else might be wrong.",
+          "reaction_text": "You swap the campaign filters, but the metrics are still opens/clicks instead of the signups she actually cares about. She discovers this a week later, closer to her leadership readout, and now trusts the numbers less.",
+          "next_node": null,
+          "rubric_signal": { "asked_clarifying_questions": false, "recovered_from_new_info": false }
+        }
+      ]
+    },
+    "node_pushback": {
+      "situation_text": "Priya: \"I don't have a week. Leadership meets Friday and I need something to show them.\" She's waiting on you to either hold your ground or fold.",
+      "options": [
+        {
+          "option_text": "Propose a small, scoped v1 in time for Friday, plus a longer discovery track for the fuller dashboard — and name that tradeoff explicitly.",
+          "reaction_text": "Priya visibly relaxes: \"That works. Just get me something directional for Friday.\" You agree on a lightweight v1 and a follow-up scope.",
+          "next_node": "node_tradeoff",
+          "rubric_signal": { "asked_clarifying_questions": true, "named_tradeoff_explicitly": true }
+        },
+        {
+          "option_text": "Cave and agree to the original week-long discovery plan anyway, unchanged.",
+          "reaction_text": "Priya says, flatly, \"I just told you I don't have a week,\" and stops responding to your messages. She routes the ask to someone else on the team.",
+          "next_node": null,
+          "rubric_signal": { "named_tradeoff_explicitly": false }
+        },
+        {
+          "option_text": "Agree to deliver the full original scope by Friday without flagging the risk of rushing it.",
+          "reaction_text": "You scramble for two days. The dashboard ships Friday morning, half-tested, with two metrics silently wrong. Nobody knew there was a risk to weigh in on.",
+          "next_node": null,
+          "rubric_signal": { "named_tradeoff_explicitly": false }
+        }
+      ]
+    },
+    "node_scope": {
+      "situation_text": "You know the shape of the ask now. While scoping, you learn the analytics team already maintains a similar engagement dashboard for a different campaign family, built on a shared data model.",
+      "options": [
+        {
+          "option_text": "Extend the analytics team's existing dashboard template with new campaign filters instead of building fresh.",
+          "reaction_text": "The analytics team is glad to help — it's a two-day extension instead of a two-week build, and it inherits their existing data-quality checks.",
+          "next_node": "node_tradeoff",
+          "rubric_signal": { "distinguished_reusable_vs_oneoff": true }
+        },
+        {
+          "option_text": "Build a new, custom dashboard from scratch tailored exactly to this ask.",
+          "reaction_text": "You ship a bespoke dashboard. It works, but a month later the analytics team flags that they're now maintaining two nearly-identical dashboards with diverging definitions of \"engagement.\"",
+          "next_node": "node_tradeoff",
+          "rubric_signal": { "distinguished_reusable_vs_oneoff": false }
+        },
+        {
+          "option_text": "Ask engineering to just pick whichever approach is fastest for them, without weighing reuse yourself.",
+          "reaction_text": "Engineering defaults to a new build since it's less coordination overhead for them short-term. Nobody evaluated the longer-term duplication cost.",
+          "next_node": "node_tradeoff",
+          "rubric_signal": { "distinguished_reusable_vs_oneoff": false }
+        }
+      ]
+    },
+    "node_tradeoff": {
+      "situation_text": "Midway through building, Priya mentions that the Sales VP wants sales-qualified-lead metrics added to \"the same dashboard.\" That data lives in a different, less reliable source system than the campaign engagement data.",
+      "options": [
+        {
+          "option_text": "Tell both VPs directly that combining the two data sources adds a data-quality risk and a timeline cost, and ask them to confirm priority.",
+          "reaction_text": "Both VPs appreciate knowing the real cost. They agree to ship the engagement dashboard first and phase in SQL metrics once the source data is validated.",
+          "next_node": "node_new_info",
+          "rubric_signal": { "named_tradeoff_explicitly": true }
+        },
+        {
+          "option_text": "Quietly add the SQL metrics to keep both stakeholders happy without raising the data-quality concern.",
+          "reaction_text": "The dashboard ships with both metric sets. The SQL numbers are noisier than anyone realizes, and nobody was given the chance to weigh in on that risk.",
+          "next_node": "node_new_info",
+          "rubric_signal": { "named_tradeoff_explicitly": false }
+        },
+        {
+          "option_text": "Tell the Sales VP no, without explaining why, to protect your timeline.",
+          "reaction_text": "The Sales VP feels dismissed and escalates to Priya, who now has to smooth over a conflict that a clearer explanation could have avoided.",
+          "next_node": "node_new_info",
+          "rubric_signal": { "named_tradeoff_explicitly": false }
+        }
+      ]
+    },
+    "node_new_info": {
+      "situation_text": "Two days before launch, a data engineer flags that the campaign attribution logic has a bug undercounting conversions by roughly 30% for one of the two campaigns.",
+      "options": [
+        {
+          "option_text": "Pause the launch, tell Priya about the bug, and give her a corrected timeline and options.",
+          "reaction_text": "Priya isn't thrilled about the delay, but tells you: \"I'd much rather hear this now than present wrong numbers to leadership. Two more days is fine.\" The dashboard ships clean.",
+          "next_node": null,
+          "rubric_signal": { "recovered_from_new_info": true }
+        },
+        {
+          "option_text": "Launch on schedule and add a small footnote about the discrepancy that most viewers won't notice.",
+          "reaction_text": "The dashboard ships on time. Three weeks later, someone in leadership notices the undercount and asks why it wasn't flagged clearly. Priya is put in an awkward spot defending numbers she didn't know were shaky.",
+          "next_node": null,
+          "rubric_signal": { "recovered_from_new_info": false }
+        },
+        {
+          "option_text": "Launch on schedule without mentioning the bug, planning to quietly fix it in a later update.",
+          "reaction_text": "Leadership makes a budget call partly based on the undercounted campaign's apparent underperformance. When the bug surfaces later, Priya has to walk back a decision — and asks why you didn't say something sooner.",
+          "next_node": null,
+          "rubric_signal": { "recovered_from_new_info": false }
+        }
+      ]
+    }
+  }
+}

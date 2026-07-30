@@ -1,0 +1,44 @@
+{
+  "scenario_id": "build_vs_reuse",
+  "title": "Build vs. Reuse",
+  "premise": "[Placeholder content] Engineering proposes reusing an existing data pipeline for a new use case. Your instinct is that a custom build would fit better, but you haven't weighed the tradeoffs yet.",
+  "persona": {
+    "name": "TBD",
+    "role": "Engineering lead",
+    "tone": "Pragmatic, wants to avoid duplicate infrastructure"
+  },
+  "rubric_dimensions": [
+    "distinguished_reusable_vs_oneoff",
+    "asked_clarifying_questions"
+  ],
+  "rubric_reference": {
+    "distinguished_reusable_vs_oneoff": "A strong PM weighs the long-term maintenance cost of a one-off build against the short-term friction of adapting a reusable system before deciding.",
+    "asked_clarifying_questions": "A strong PM asks what the existing pipeline can and can't do before assuming a custom build is necessary."
+  },
+  "pass_threshold": { "count": 1 },
+  "nodes": {
+    "start": {
+      "situation_text": "[Placeholder] Engineering has flagged a reusable pipeline as an option for your new use case. This is stub content — full branching to be authored.",
+      "options": [
+        {
+          "option_text": "[Placeholder] Insist on a custom build without evaluating the existing pipeline's fit.",
+          "reaction_text": "[Placeholder reaction — content pending.]",
+          "next_node": null,
+          "rubric_signal": { "distinguished_reusable_vs_oneoff": false, "asked_clarifying_questions": false }
+        },
+        {
+          "option_text": "[Placeholder] Ask engineering what the existing pipeline covers and where it falls short before deciding.",
+          "reaction_text": "[Placeholder reaction — content pending.]",
+          "next_node": null,
+          "rubric_signal": { "asked_clarifying_questions": true }
+        },
+        {
+          "option_text": "[Placeholder] Choose to extend the reusable pipeline after weighing the maintenance tradeoff explicitly.",
+          "reaction_text": "[Placeholder reaction — content pending.]",
+          "next_node": null,
+          "rubric_signal": { "distinguished_reusable_vs_oneoff": true }
+        }
+      ]
+    }
+  }
+}
