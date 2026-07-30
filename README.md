@@ -18,6 +18,17 @@ judge), multiple choice only, mock auth.
   `server/data/users.json` (2 trainees + 1 manager); the selected user id is
   sent as an `x-user-id` header on every API call. No passwords, no sessions.
 
+## Deployment
+
+This app runs as a normal long-lived Node process (Express `app.listen`,
+attempts persisted to a local JSON file) — it's intentionally **not**
+deployed to Vercel or any other serverless platform right now. Vercel's
+model is stateless functions with an ephemeral filesystem, which doesn't fit
+`server/src/store.js`'s local-file persistence or a process that needs to
+stay running. `vercel.json`'s `ignoreCommand` tells this repo's linked
+Vercel project to skip every deploy for now, so CI shows "skipped" rather
+than a spurious failure. Run it locally instead (see below).
+
 ## Running it
 
 ```
